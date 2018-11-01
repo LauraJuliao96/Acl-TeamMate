@@ -1,0 +1,93 @@
+
+SET FOLDER /TablaBase
+COMMENT  
+Se importa la tabla EWP_Project la cual contiene el listado de projectos de EWP.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "EWP_Project" OWNER "dbo" USERID "epgestionryc02" TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\EWP_Project.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"ProjectID","LastCentralSentDate","LastCentralSentUserID","FreezePrograms","CreateDate","InitializeDate","FinalizeDate","LastModifiedDate","EncryptWorkpapers","AllowCreateTemplate","NextUniqueCounter","LastReplicaID","NextReplicaCounter","ReplicaUpdates","ReplicaLevel","ReplicaNumber","DatabaseGuidHierarchy","ParentServiceLocation","ParentDataLocation","IsCreating",TMGUID,LMG,LMD,LMU
+
+COMMENT
+Se importa la tabla EWP_ScoringMetric la cual consiste en la relación de un proyecto con las variables de las  metricas
+
+IMPORT ODBC SOURCE "TRM11" TABLE "EWP_ScoringMetric" OWNER "dbo" USERID "epgestionryc02" TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\EWP_ScoringMetric.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,TMGUID,"ProjectID","Description","DimensionConfigLID",LMG,LMD,LMU
+OPEN EWP_ScoringMetric
+
+
+
+COMMENT
+Se importa la tabla EWP_RiskPostAuditScore en la calificación de Inherente y Residual.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "EWP_RiskPostAuditScore" OWNER "dbo" USERID "epgestionryc02"  TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\EWP_RiskPostAuditScore.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,TMGUID,"RiskID","ResidualScoreID","InherentScoreID","ScoringMetricID",LMG,LMD,LMU
+OPEN EWP_RiskPostAuditScore
+
+
+COMMENT
+Se importa la tabla EWP_ScoringMetricScore la cual consiste en la calificación de cada metrica
+
+IMPORT ODBC SOURCE "TRM11" TABLE "EWP_ScoringMetricScore" OWNER "dbo" USERID "epgestionryc02"  TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\EWP_ScoringMetricScore.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,TMGUID,"ScoreValue","ScoreLabel","ScoringMetricID",LMG,LMD,LMU
+OPEN EWP_ScoringMetricScore
+
+
+COMMENT
+Se importa la tabla EWP_Risk la cual consiste en el listado de los riesgos.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "EWP_Risk" OWNER "dbo" USERID "epgestionryc02"  TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\EWP_Risk.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"Title","Notes","Description","Code","UserCategory1CID","UserCategory2CID","UserCategory3CID","UserCategory4CID","YesNo1","YesNo2","NumericVal1","NumericVal2","FromAssessment","ExtOriginEdited",TMGUID,LMG,LMD,LMU,"SortOrder","Weight"
+OPEN EWP_Risk
+
+
+COMMENT
+Se importa la tabla EWP_Workbook la cual consiste en el listado de las evaluaciónes relacionadas con un plan.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "TR_Workbook" OWNER "dbo" USERID "epgestionryc02"  TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\TR_Workbook.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"Title","Description","Code","OrganizationID","FormulaInherent","FormulaResidual","Template","OldRID","SelfAssessEnabled",TMGUID,LMG,LMD,LMU,"EntityFormulaInherent","EntityFormulaResidual","RollupToEntityParents","ScoreAggregationTypeLID","Author"
+OPEN TR_Workbook
+
+
+COMMENT
+Se importa la tabla EWP_AuditPlan la cual consiste en el listado de los planes.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "TM_AuditPlan" OWNER "dbo" USERID "epgestionryc02"  TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\TM_AuditPlan.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"OrganizationID","Title","Description","StartDate","EndDate","ActiveStatusLID","IsClosed","ClosedDate","NumberOfResources","HoursPerResource","IsApproved","ApprovedDate",TMGUID,LMG,LMD,LMU,"ClientID","PriorAuditPlanID"
+OPEN TM_AuditPlan
+
+
+COMMENT
+Se importa la tabla TM_Project la cual consiste en el listado de los proyectos.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "TM_Project" OWNER "dbo" USERID "epgestionryc02"  TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\TM_Project.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"TemplateProjectTMGUID","PriorProjectID","Title","Code","Version","TypeCID","LocationCID","ScopeCID","ActStartDate","ActEndDate","PhaseLID","BudgetHours","ActualHours","LeadUserID","ManagerUserID","RiskCID",ROI,"Cost","EstDraftDate","ActDraftDate","EstRespondDate","ActRespondDate","EstIssueDate","ActIssueDate","Objective","Background","PlanInfo","OpinionCID","FinalRiskCID","Summary","StaffTypeCID","ParentName","EstStartDate","EstEndDate","StatusLID","AssessmentID","GroupCID","SchedStartDate","SchedEndDate","EstCostExternal","ActCostExternal","EstResources","Chargeable","Stage","RiskScore","InherentScore","ResidualScore","OriginCID","EstCostResource","ActCostResource","CancelledStatusLID","ApplicationLID","BookHours","BookCostResource","BookCostExternal","CancelledReason","SecondaryRate","ExpenseCosts","TimeNotes","SchedNotes","ActCostExpense","RolledForwardStateLID","RatingCID","UserText1","UserText2","LastAuditStartedInUTC","CycleTimeInMonths","ActClosedDate","IsTemplate","ActiveStatusLID","OldRID",TMGUID,LMG,LMD,LMU,"CreatedInDatabase","AuditPlanID","IsApproved","ParentID","RollForwardDate","DeferredDeleteTypeLID"
+OPEN TM_Project
+
+
+COMMENT
+Se importa la tabla TM_ProjectToOrgHierarchy la cual consiste en la relación de proyectos y las entidades.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "TM_ProjectToOrgHierarchy" OWNER "dbo" USERID "epgestionryc02"  TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\TM_ProjectToOrgHierarchy.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"ProjectID","OrgHierarchyID",TMGUID,LMG,LMD,LMU,"ApplicationLID"
+OPEN TM_ProjectToOrgHierarchy
+
+COMMENT
+Se importa la tabla TM_OrgHierarchy la cual consiste en el listado de las entidades relacionadas con un plan.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "TM_OrgHierarchy" OWNER "dbo" USERID "epgestionryc02"  TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\TM_OrgHierarchy.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"ParentID","Title","Code","Objective","Background","Planning","OrganizationID","SubitemsOrder","PriorID","PriorDirty","OldRID","Description",TMGUID,LMG,LMD,LMU,"SortOrder","GlobalEntityID","IsAuditable","ActiveStatusLID","LocationCID",GRCGUID,"CycleTimeInMonths","LastAuditDate","ModifiedByCM","IsCMAuditable"
+OPEN TM_OrgHierarchy
+
+
+COMMENT
+Se importa la tabla TM_CategoryValue la cual consiste en el listado todos los tipos de proyecto.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "TM_CategoryValue" OWNER "dbo" USERID "epgestionryc02" TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\TM_CategoryValue.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"CategoryID","Culture","Name","Description",TMGUID,LMG,LMD,LMU
+OPEN TM_CategoryValue
+
+COMMENT
+Se importa la tabla EWP_EntityToRisk la cual consiste en la relacion entre las entidades y el riesgo.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "EWP_EntityToRisk" OWNER "dbo" USERID "epgestionryc02" TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\EWP_EntityToRisk.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"RiskID",TMGUID,LMG,LMD,LMU,"ProjectToOrgHierarchyID"
+
+COMMENT
+Se importa la tabla EWP_EntityToRisk la cual consiste en el estado del proyecto.
+
+IMPORT ODBC SOURCE "TRM11" TABLE "TM_List_ProjectStatus" OWNER "dbo" USERID "epgestionryc02" TO "\\10.11.0.151\_1ProyectosACL\Servidor\Teammate\TM_List_ProjectStatus.FIL" WIDTH 50 MAXIMUM 100 FIELDS ID,"Name","Description","SortOrder","ResourceName",TMGUID,LMG,LMD,LMU
+
+DO SCRIPT _ReporteRiesgosEWP2
+
+COMMENT
+Viejo reporte ReporteRiesgoEWP
+
+COMMENT 
+Nuevo reporte ReporteRiesgoEWP2
