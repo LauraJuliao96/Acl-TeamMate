@@ -1,0 +1,177 @@
+SET SAFETY OFF 
+
+SET FOLDER /Temporal
+
+COMMENT
+Relacion entre los planes y las entidades.
+
+OPEN TM_AuditPlan
+OPEN TM_OrgHierarchy SECONDARY
+JOIN MANY PKEY OrganizationID FIELDS  OrganizationID AS 'IDPlan'  Title AS 'Plan'  StartDate AS 'FechaInicioPlan' EndDate AS 'FechaFinPlan' SKEY OrganizationID WITH ID AS 'IDEntidad' Title AS 'Entidad'   TO "Tmp_ReporteRiesgo1" OPEN PRESORT SECSORT
+
+COMMENT
+Relacion entre lo planes , las entidades y la evaluacion.
+
+OPEN Tmp_ReporteRiesgo1
+OPEN TR_Workbook SECONDARY
+JOIN MANY PKEY IDPlan FIELDS IDEntidad IDPlan Plan FechaInicioPlan FechaFinPlan   SKEY OrganizationID WITH Title AS 'Evaluacion' Code AS 'CodigoEvaluacion' Description AS 'DescripcionEvaluacion'    TO "Tmp_ReporteRiesgo2" OPEN PRESORT SECSORT
+OPEN "Tmp_ReporteRiesgo2"
+
+COMMENT
+Relacion entre los planes , las entidades y el proyecto-con-la-entidad.
+
+OPEN Tmp_ReporteRiesgo1
+OPEN TM_ProjectToOrgHierarchy SECONDARY
+JOIN MANY PKEY IDEntidad FIELDS IDPlan Plan FechaInicioPlan FechaFinPlan IDEntidad SKEY OrgHierarchyID WITH ID AS 'ProyectoEntidad' ProjectID AS 'IDProyecto'  TO "Tmp_ReporteRiesgo3" OPEN PRESORT SECSORT
+COMMENT
+
+OPEN EWP_Project
+INDEX ON ProjectID TO "EWP_Project_on_ProjectID"
+OPEN Tmp_ReporteRiesgo3
+DEFINE RELATION IDProyecto WITH EWP_Project INDEX EWP_Project_on_ProjectID
+OPEN TM_Project
+INDEX ON ID TO "TM_Project_on_ID"
+OPEN Tmp_ReporteRiesgo3
+DEFINE RELATION IDProyecto WITH TM_Project INDEX TM_Project_on_ID
+
+COMMENT
+Relacion entre los planes , las entidades y los proyectos.
+
+OPEN Tmp_ReporteRiesgo3
+EXTRACT FIELDS IDPlan Plan FechaInicioPlan FechaFinPlan ProyectoEntidad IDEntidad IDProyecto TM_Project.Code TM_Project.Title  EWP_Project.CreateDate EWP_Project.InitializeDate  AS 'FechaInicioProyecto' TM_Project.StatusLID AS 'IDEstado'TO Tmp_ReporteRiesgo4 OPEN
+
+COMMENT
+
+OPEN Tmp_ReporteRiesgo4
+SUMMARIZE ON IDPlan Plan FechaInicioPlan FechaFinPlan ProyectoEntidad IDEntidad IDProyecto Code AS 'CodigoProyecto' Title AS 'Proyecto'  CreateDate AS 'FechaCreacionProyecto' OTHER IDPlan Plan FechaInicioPlan FechaFinPlan ProyectoEntidad IDEntidad IDProyecto Code AS 'CodigoProyecto' Title AS 'Proyecto' CreateDate AS 'FechaCreacionProyecto' FechaInicioProyecto IDEstado TO "Tmp_ReporteRiesgo5.FIL" OPEN PRESORT
+
+COMMENT
+Relacion entre los planes , las entidades , proyecto-con-la-entidad y las metricas.
+
+OPEN Tmp_ReporteRiesgo5
+OPEN EWP_ScoringMetric SECONDARY
+JOIN MANY PKEY IDProyecto FIELDS IDPlan Plan FechaInicioPlan FechaFinPlan ProyectoEntidad IDEntidad IDProyecto CodigoProyecto Proyecto FechaCreacionProyecto FechaInicioProyecto IDEstado COUNT SKEY ProjectID WITH ID AS 'IDScoringMetric' Description AS 'Metrica' TO "Tmp_ReporteRiesgo6" OPEN PRESORT SECSORT
+
+COMMENT
+Relacion entre un proyecto y las metricas con sus respectivos valores.
+
+OPEN EWP_ScoringMetric
+OPEN EWP_ScoringMetricScore SECONDARY
+JOIN MANY PKEY ID FIELDS ID ProjectID Description SKEY ScoringMetricID WITH ID ScoreLabel ScoreValue TO "Tmp_ReporteRiesgo7" OPEN PRESORT SECSORT
+
+COMMENT
+
+OPEN "Tmp_ReporteRiesgo7"
+DEFINE FIELD Key_MetricScore COMPUTED ALLTRIM(STRING(ID;8))+'-'+ALLTRIM(STRING(ID2;8))
+EXTRACT FIELD ALL TO Tmp_ReporteRiesgo8 OPEN
+
+COMMENT
+Relacion entre los riesgos y los valores ID de inherente y residual.
+
+OPEN EWP_Risk
+INDEX ON ID TO "EWP_Risk_on_ID"
+OPEN EWP_RiskPostAuditScore
+DEFINE RELATION RiskID WITH EWP_Risk INDEX EWP_Risk_on_ID
+EXTRACT FIELDS ID RiskID EWP_Risk.Title ResidualScoreID InherentScoreID ScoringMetricID  TO Tmp_ReporteRiesgo9 OPEN
+
+COMMENT
+Relacion entre los riesgos y los valores  de inherente y residual.
+
+OPEN Tmp_ReporteRiesgo8
+INDEX ON ID2 TO "Tmp_ReporteRiesgo8_on_ID2"
+OPEN Tmp_ReporteRiesgo9
+DEFINE RELATION ResidualScoreID WITH Tmp_ReporteRiesgo8 INDEX Tmp_ReporteRiesgo8_on_ID2
+EXTRACT FIELD ALL Tmp_ReporteRiesgo8.Description Tmp_ReporteRiesgo8.ScoreValue  TO Tmp_ReporteRiesgo10 OPEN
+
+COMMENT
+relacion de los valores y las metricas.
+
+OPEN Tmp_ReporteRiesgo8
+INDEX ON ID2 TO "Tmp_ReporteRiesgo8_on_ID2"
+OPEN Tmp_ReporteRiesgo10
+DEFINE RELATION InherentScoreID WITH Tmp_ReporteRiesgo8 INDEX Tmp_ReporteRiesgo8_on_ID2
+EXTRACT FIELD ALL  Tmp_ReporteRiesgo8.ScoreValue  TO Tmp_ReporteRiesgo11 OPEN
+
+COMMENT
+Relacion entre los riesgos las metricas y los valores respectivos de inherente y residual.
+
+OPEN Tmp_ReporteRiesgo11
+OPEN EWP_EntityToRisk SECONDARY
+JOIN PKEY RiskID FIELDS RiskID Title ScoringMetricID Description ResidualScoreID ScoreValue InherentScoreID ScoreValue2 SKEY RiskID WITH  ProjectToOrgHierarchyID TO "Tmp_ReporteRiesgo12" OPEN PRESORT SECSORT
+OPEN "Tmp_ReporteRiesgo12"
+INDEX ON ProjectToOrgHierarchyID TO "ACLQSTMP91"
+
+COMMENT
+Relacion entre los planes , las entidades , los proyectos , los riesgos y los valores respectivos en inherente y residual.
+
+OPEN Tmp_ReporteRiesgo12
+OPEN Tmp_ReporteRiesgo6 SECONDARY
+JOIN PKEY ProjectToOrgHierarchyID FIELDS RiskID Title ScoringMetricID Description InherentScoreID ScoreValue2 ResidualScoreID ScoreValue  SKEY ProyectoEntidad WITH IDPlan Plan FechaInicioPlan FechaFinPlan ProyectoEntidad IDEntidad IDProyecto CodigoProyecto Proyecto FechaCreacionProyecto FechaInicioProyecto IDEstado TO "Tmp_ReporteRiesgo13" OPEN PRESORT SECSORT
+
+
+COMMENT
+Relacion entre los planes , las entidades , los proyectos , los riesgos y los valores respectivos en inherente y residual.
+
+OPEN Tmp_ReporteRiesgo13
+EXTRACT FIELDS IDPlan Plan FechaInicioPlan FechaFinPlan ProyectoEntidad IDEntidad IDProyecto Proyecto CodigoProyecto  FechaCreacionProyecto FechaInicioProyecto IDEstado RiskID AS 'IDRiesgo'  Title AS 'Riesgo' ScoringMetricID AS 'IDMetrica' Description AS 'Metrica' InherentScoreID AS 'IDInherente' ScoreValue2 AS 'ValorInherente' ResidualScoreID AS 'IDResidual'  ScoreValue AS 'ValorResidual' TO Tmp_ReporteRiesgo14 OPEN
+
+COMMENT
+Relacion entre los planes,entidades,proyectos,riesgos,y valores respectivos en inherente y residual.
+
+OPEN Tmp_ReporteRiesgo14
+OPEN Tmp_ReporteRiesgo2 SECONDARY
+JOIN PKEY IDPlan FIELDS IDPlan Plan FechaInicioPlan FechaFinPlan ProyectoEntidad IDEntidad IDProyecto Proyecto CodigoProyecto  FechaCreacionProyecto FechaInicioProyecto IDEstado IDRiesgo  Riesgo IDMetrica Metrica IDInherente ValorInherente IDResidual  ValorResidual SKEY IDPlan WITH CodigoEvaluacion Evaluacion DescripcionEvaluacion TO "Tmp_ReporteRiesgo15" OPEN PRESORT SECSORT
+
+COMMENT
+
+OPEN Tmp_ReporteRiesgo15
+EXTRACT FIELDS IDPlan Plan FechaInicioPlan FechaFinPlan CodigoEvaluacion Evaluacion DescripcionEvaluacion  ProyectoEntidad IDEntidad IDProyecto Proyecto CodigoProyecto FechaCreacionProyecto FechaInicioProyecto IDEstado IDRiesgo  Riesgo IDMetrica Metrica IDInherente ValorInherente IDResidual  ValorResidual TO Tmp_ReporteRiesgo16 OPEN
+
+
+COMMENT
+Relacion entre los planes,evaluaciones,entidades,proyectos,riesgos,y valores respectivos en inherente y residual.
+
+OPEN Tmp_ReporteRiesgo1
+INDEX ON IDEntidad TO "Tmp_ReporteRiesgo1_on_IDEntidad"
+OPEN Tmp_ReporteRiesgo16
+DEFINE RELATION IDEntidad WITH Tmp_ReporteRiesgo1 INDEX Tmp_ReporteRiesgo1_on_IDEntidad
+EXTRACT FIELDS IDPlan Plan FechaInicioPlan FechaFinPlan CodigoEvaluacion Evaluacion DescripcionEvaluacion  ProyectoEntidad IDProyecto Proyecto CodigoProyecto  FechaCreacionProyecto  FechaInicioProyecto IDEstado IDEntidad Tmp_ReporteRiesgo1.Entidad AS 'Entidad' IDRiesgo  Riesgo IDMetrica Metrica IDInherente ValorInherente IDResidual  ValorResidual TO Tmp_ReporteRiesgo17 OPEN
+
+COMMENT
+Relacion entre los planes,evaluaciones,entidades,el idtipo ,proyectos,riesgos,y valores respectivos en inherente y residual
+
+OPEN Tmp_ReporteRiesgo17
+DEFINE RELATION IDProyecto WITH TM_Project INDEX TM_Project_on_ID
+INDEX ON IDProyecto TO "ACLQSTMP144"
+EXTRACT FIELDS IDPlan Plan FechaInicioPlan FechaFinPlan CodigoEvaluacion Evaluacion DescripcionEvaluacion  ProyectoEntidad TM_Project.TypeCID AS 'IDTipo' IDProyecto Proyecto CodigoProyecto  FechaCreacionProyecto FechaInicioProyecto IDEstado IDEntidad Entidad IDRiesgo  Riesgo IDMetrica Metrica IDInherente ValorInherente IDResidual  ValorResidual TO Tmp_ReporteRiesgo18 OPEN
+
+COMMENT
+Tabla final 
+Relacion entre los planes,evaluaciones,entidades,el tipo,proyectos,riesgos,y valores respectivos en inherente y residual.
+
+
+OPEN TM_CategoryValue
+INDEX ON CategoryID TO "TM_CategoryValue_on_CategoryID"
+OPEN Tmp_ReporteRiesgo18
+DEFINE RELATION IDTipo WITH TM_CategoryValue INDEX TM_CategoryValue_on_CategoryID
+INDEX ON IDProyecto TO "ACLQSTMP152"
+EXTRACT FIELDS IDPlan Plan FechaInicioPlan FechaFinPlan CodigoEvaluacion Evaluacion DescripcionEvaluacion  ProyectoEntidad IDTipo TM_CategoryValue.Name AS 'Tipo' IDProyecto  Proyecto CodigoProyecto  FechaCreacionProyecto FechaInicioProyecto IDEstado IDEntidad Entidad IDRiesgo  Riesgo IDMetrica Metrica IDInherente ValorInherente IDResidual  ValorResidual TO Tmp_ReporteRiesgo19 OPEN
+
+OPEN Tmp_ReporteRiesgo19
+EXTRACT FIELDS Plan FechaInicioPlan FechaFinPlan CodigoEvaluacion Evaluacion DescripcionEvaluacion Tipo Proyecto CodigoProyecto  FechaCreacionProyecto  FechaInicioProyecto IDEstado Entidad Riesgo Metrica  ValorInherente ValorResidual TO Tmp_ReporteRiesgo20 OPEN
+
+OPEN TM_List_ProjectStatus
+INDEX ON ID TO "TM_List_ProjectStatus_on_ID"
+OPEN Tmp_ReporteRiesgo20
+DEFINE RELATION IDEstado WITH TM_List_ProjectStatus INDEX TM_List_ProjectStatus_on_ID
+EXTRACT FIELDS Plan FechaInicioPlan FechaFinPlan CodigoEvaluacion Evaluacion DescripcionEvaluacion Tipo Proyecto CodigoProyecto FechaCreacionProyecto  FechaInicioProyecto IDEstado  TM_List_ProjectStatus.Name AS 'Estado'  Entidad Riesgo Metrica  ValorInherente ValorResidual TO Tmp_ReporteRiesgo21 OPEN
+
+
+SET FOLDER /Resultados
+
+OPEN Tmp_ReporteRiesgo21
+EXTRACT FIELDS Plan FechaInicioPlan FechaFinPlan CodigoEvaluacion Evaluacion DescripcionEvaluacion Tipo Proyecto CodigoProyecto  FechaCreacionProyecto  FechaInicioProyecto Estado Entidad Riesgo Metrica  ValorInherente ValorResidual TO Tmp_ReporteRiesgo22 OPEN
+
+
+EXPORT FIELDS Plan AS 'Plan'  FechaInicioPlan AS 'FechaInicioPlan'  FechaFinPlan AS 'FechaFinPlan'  CodigoEvaluacion AS 'CodigoEvaluacion'  Evaluacion AS 'Evaluacion'  DescripcionEvaluacion AS 'DescripcionEvaluacion'  Tipo AS 'Tipo'  Proyecto AS 'Proyecto'  CodigoProyecto AS 'CodigoProyecto'  FechaCreacionProyecto AS 'FechaCreacionProyecto'  FechaInicioProyecto AS 'FechaInicioProyecto'  Estado AS 'Estado'  Entidad AS 'Entidad'  Riesgo AS 'Riesgo'  Metrica AS 'Metrica'  ValorInherente AS 'ValorInherente'  ValorResidual AS 'ValorResidual'  XLSX TO "Reporte23-10-2018" WORKSHEET Tmp_ReporteRiesgo22
+
